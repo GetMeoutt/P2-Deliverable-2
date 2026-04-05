@@ -1,0 +1,16 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python3:*)",
+      "Bash(where python:*)",
+      "Bash(python:*)",
+      "Bash(\"/c/Users/GAMING PC/Nextcloud/BCIT/data-analysis/P2-Deliverable-2/venv/Scripts/pip.exe\" install pandas numpy matplotlib seaborn scikit-learn scipy jupyter)",
+      "Bash(\"/c/Users/GAMING PC/Nextcloud/BCIT/data-analysis/P2-Deliverable-2/venv/Scripts/pip.exe\" install pandas numpy matplotlib seaborn scikit-learn scipy ipykernel)",
+      "Bash(\"/c/Users/GAMING PC/Nextcloud/BCIT/data-analysis/P2-Deliverable-2/venv/Scripts/python.exe\" -m ipykernel install --user --name=deliverable2 --display-name=\"Python \\(Deliverable 2\\)\")",
+      "Bash(\"/c/Users/GAMING PC/Nextcloud/BCIT/data-analysis/P2-Deliverable-2/venv/Scripts/python.exe\" -c \"\nimport pandas as pd\nimport numpy as np\nimport matplotlib.pyplot as plt\nimport seaborn as sns\nfrom sklearn.model_selection import train_test_split, GridSearchCV\nfrom sklearn.linear_model import LinearRegression\nfrom sklearn.tree import DecisionTreeRegressor\nfrom sklearn.ensemble import RandomForestRegressor, GradientBoostingRegressor\nfrom sklearn.preprocessing import RobustScaler\nfrom sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score\nfrom scipy.stats import boxcox, skew\nfrom scipy.special import inv_boxcox\nimport warnings\nwarnings.filterwarnings\\('ignore'\\)\nprint\\('All imports successful'\\)\n\")",
+      "Bash(\"/c/Users/GAMING PC/Nextcloud/BCIT/data-analysis/P2-Deliverable-2/venv/Scripts/jupyter.exe\" execute \"/c/Users/GAMING PC/Nextcloud/BCIT/data-analysis/P2-Deliverable-2/Deliverable2.ipynb\" --ExecutePreprocessor.kernel_name=deliverable2)",
+      "Bash(\"/c/Users/GAMING PC/Nextcloud/BCIT/data-analysis/P2-Deliverable-2/venv/Scripts/pip.exe\" install nbclient nbformat)",
+      "Bash(\"/c/Users/GAMING PC/Nextcloud/BCIT/data-analysis/P2-Deliverable-2/venv/Scripts/python.exe\" -c \":*)"
+    ]
+  }
+}
