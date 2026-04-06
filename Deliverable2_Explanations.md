@@ -42,43 +42,44 @@
 
 ## Task 2: Hyperparameter Explanation
 
-### Model 1: Ridge Regression
+### Model 1: Decision Tree
 
 | Hyperparameter | What It Controls | Model Complexity | Overfit vs Underfit | Why It Matters Here |
 |---|---|---|---|---|
-| alpha | Regularization strength (L2 penalty) | Higher alpha → simpler model | Low alpha → overfit; High alpha → underfit | Income data has many correlated features (EF/CF duplicates) → regularization prevents multicollinearity issues |
+| max_depth | Maximum depth of the tree | Deeper → more complex | Deep → overfit (memorizes noise); Shallow → underfit | Income has non-linear relationships → needs depth, but unlimited depth memorizes training data |
+| min_samples_split | Minimum samples required to split a node | Higher → simpler (fewer splits) | High → underfit; Low → overfit | Controls how granular the tree splits on income predictors |
+| min_samples_leaf | Minimum samples in a leaf node | Higher → simpler (larger leaves) | High → underfit; Low → overfit | Prevents leaves with very few samples (rare income values at tails) |
 
 ### Model 2: Random Forest
 
 | Hyperparameter | What It Controls | Model Complexity | Overfit vs Underfit | Why It Matters Here |
 |---|---|---|---|---|
-| n_estimators | Number of trees in the forest | More trees → more complex, diminishing returns | More trees → less overfit (averaging effect) | Large dataset (80K rows) → needs enough trees for stable predictions |
+| n_estimators | Number of trees in the ensemble | More trees → more complex, diminishing returns | More trees → less overfit (averaging effect) | Large dataset (80K rows) → needs enough trees for stable predictions |
 | max_depth | Maximum depth per tree | Deeper → more complex | Deep trees → overfit; Shallow → underfit | Income has non-linear relationships → needs depth, but too deep memorizes noise |
 | min_samples_split | Minimum samples to split a node | Higher → simpler | High value → underfit; Low → overfit | Controls granularity of splits on income predictors |
-| min_samples_leaf | Minimum samples in leaf node | Higher → simpler | High → underfit; Low → overfit | Prevents leaves with very few samples (rare income values) |
 
-### Model 3: Gradient Boosting
+### Model 3: SVR (Support Vector Regressor)
 
 | Hyperparameter | What It Controls | Model Complexity | Overfit vs Underfit | Why It Matters Here |
 |---|---|---|---|---|
-| n_estimators | Number of boosting stages | More stages → more complex | More → risk of overfit (sequential correction) | Needs enough stages to learn income patterns |
-| learning_rate | Step size per boosting stage | Lower → slower learning, needs more trees | Low rate + many trees → better generalization | Trade-off with n_estimators: lower rate = more stages needed |
-| max_depth | Depth of individual trees | Deeper → captures more interactions | Deep → overfit; Shallow → underfit | Income prediction benefits from feature interactions (age × education) |
-| subsample | Fraction of samples per tree | Lower → more regularization | Low → underfit; High → overfit | Adds stochasticity, reduces overfitting on skewed income distribution |
+| C | Regularization parameter | Higher C → more complex (less regularization) | High C → overfit (fits noise); Low C → underfit (too smooth) | Income data has outliers → C controls how much to penalize errors beyond epsilon tube |
+| epsilon | Width of the epsilon-insensitive tube | Larger → ignores more errors | Large → underfit (too tolerant); Small → overfit (too sensitive) | Controls tolerance for prediction errors — wider tube = smoother predictions |
+| kernel | Type of kernel function (rbf) | RBF → non-linear decision boundary | RBF captures complex patterns but can overfit | Income depends non-linearly on age, education, hours → RBF captures these interactions |
 
 ---
 
 ## Task 4: Interpretation
 
 ### Why Models Performed Differently
-- Ridge: linear model → cannot capture non-linear income relationships (age groups, education levels are categorical codes)
-- Random Forest: handles non-linearity + feature interactions well → strong on this dataset
-- Gradient Boosting: sequential error correction → often best for structured/tabular data
+- Decision Tree: single tree → prone to overfitting, high variance, no ensemble averaging
+- Random Forest: ensemble of trees → reduces variance via bagging, handles non-linearity well
+- SVR: kernel-based → captures non-linear patterns, but slow on large datasets and sensitive to scaling
 - Data characteristics influencing results:
   - High dimensionality (200+ features)
   - Mix of categorical codes and continuous values
   - Correlated features (person-level vs EF vs CF versions)
   - Skewed target with outliers
+  - Large dataset (80K rows) → SVR may be slower than tree-based models
 
 ### Evaluation Trade-offs
 
