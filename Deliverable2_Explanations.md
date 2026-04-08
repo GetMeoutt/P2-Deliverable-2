@@ -10,7 +10,7 @@
 |---|---|
 | Target (After-tax Income) is right-skewed | Histogram shows long right tail |
 | Extreme outliers exist | Boxplot shows values far beyond Q3 + 1.5×IQR |
-| Unequal variance | Q-Q plot deviates from normal at tails |
+| Unequal variance | Boxplots show wide spread with many points beyond whiskers |
 | Most values clustered in low-mid range | Median (~$40K) much lower than mean (~$47K) |
 
 → Models overfit to the dense low-income region, underperform on high-income predictions
@@ -27,8 +27,9 @@
 | **Robust Scaling** | Centers on median, scales by IQR | Features with many outliers, preserves shape |
 
 ### Selection Criteria
-- For each feature → applied all 4 transformations
-- Selected the one that **minimizes |skewness|**
+- For each feature → applied transformations and selected the one that **minimizes |skewness|**
+- **Continuous features** (>10 unique values) → all 4 transformations considered
+- **Categorical/ordinal features** (≤10 unique values) → Box-Cox excluded (distorts ordinal structure); Log, Square-root, Robust Scaling considered
 - Different features may use different transformations
 
 ---
@@ -67,8 +68,27 @@
 ### How Imbalance Impacts Predictions
 - **Before transformation**: Models biased toward predicting median income range
 - **RMSE >> MAE** indicates large errors on extreme values (high-income outliers)
-- **After transformation**: If gap between RMSE and MAE narrows → outlier influence reduced
-- R² improvement → transformations helped model capture more variance
+
+### Why Transformations Decreased Performance
+
+| Factor | Explanation |
+|---|---|
+| **Most features are categorical/ordinal** | 15 of 20 features have ≤10 unique values (flags, codes, groups) — not truly continuous |
+| **Tree models split on thresholds** | DT/RF find splits like "Economic family type ≤ 23" — transformations warp spacing between categories, making splits less clean |
+| **RF dropped from 0.30 → 0.04 R²** | Every tree in the ensemble got worse splits → ensemble averaging couldn't compensate |
+| **DT went from -0.04 → -1.31 R²** | Single tree relies entirely on clean thresholds — warped values caused catastrophic splits |
+| **SVR barely changed** | Already uses StandardScaler — additional transforms on top added noise, not signal |
+| **Skewness ≠ model performance** | Lower skewness helps models that assume normality (linear regression); tree models are inherently robust to skew |
+
+### Key Takeaway
+
+| Model Type | Benefits from Skew Reduction? | Why |
+|---|---|---|
+| **Decision Tree** | No | Splits on rank order — only cares about thresholds, not distribution shape |
+| **Random Forest** | No | Same as DT; ensemble averaging already handles variance |
+| **SVR** | Minimal | StandardScaler already normalizes feature ranges; further transforms redundant |
+
+→ Transformations are **not universally beneficial** — they can hurt when applied to categorical/ordinal data or models that don't assume normality
 
 ---
 
