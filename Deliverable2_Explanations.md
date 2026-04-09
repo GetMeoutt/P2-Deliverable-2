@@ -4,16 +4,24 @@
 
 ## Task 1: Data Balancing (Handling Outliers & Unequal Variance)
 
-### Why This is a Regression Imbalance Problem
+### Identifying Outliers Across All 20 Independent Variables
 
 | Observation | Evidence |
 |---|---|
-| Target (After-tax Income) is right-skewed | Histogram shows long right tail |
-| Extreme outliers exist | Boxplot shows values far beyond Q3 + 1.5×IQR |
-| Unequal variance | Boxplots show wide spread with many points beyond whiskers |
-| Most values clustered in low-mid range | Median (~$40K) much lower than mean (~$47K) |
+| Outliers detected via IQR method on all 20 features | Boxplots show points beyond Q1 - 1.5×IQR and Q3 + 1.5×IQR |
+| Many features have high outlier % | e.g., Total hours worked (41.5%), Economic family type (31.6%), Census family composition (25.5%) |
+| Features with IQR = 0 flag all non-modal values as outliers | e.g., Flag - Person completed high school, Full-time/part-time student |
+| 15 of 20 features are categorical/ordinal (≤10 unique values) | Outlier detection via IQR is less meaningful for these — "outliers" are just rare categories |
 
-→ Models overfit to the dense low-income region, underperform on high-income predictions
+### Why This is Imbalanced
+
+| Factor | Evidence |
+|---|---|
+| Target (After-tax Income) is right-skewed | Histogram shows long right tail; median (~$40K) much lower than mean (~$47K) |
+| Feature distributions are skewed | Skewness table shows values up to 2.1 (Flag - Person completed high school) and -2.5 (Full-time/part-time student) |
+| Rare values dominate some features | Boxplots show many features with 10-40% of values flagged as outliers |
+
+→ Models biased toward the dense center of each feature's distribution, underperform on rare value combinations
 
 ---
 
@@ -30,7 +38,7 @@
 - For each feature → applied transformations and selected the one that **minimizes |skewness|**
 - **Continuous features** (>10 unique values) → all 4 transformations considered
 - **Categorical/ordinal features** (≤10 unique values) → Box-Cox excluded (distorts ordinal structure); Log, Square-root, Robust Scaling considered
-- Different features may use different transformations
+- Every feature receives a transformation — none left untouched
 
 ---
 
@@ -40,7 +48,7 @@
 |---|---|---|
 | Log Transform | Reduces right skew effectively | Requires shift for zero/negative values; distorts spacing |
 | Square-root | Gentler than log, intuitive | Less effective on heavy skew |
-| Box-Cox | Optimal power parameter auto-selected | Requires strictly positive input (shifted); can overfit to training distribution |
+| Box-Cox | Optimal power parameter auto-selected | Requires strictly positive input (shifted); distorts categorical/ordinal features |
 | Robust Scaling | Handles outliers without removing them | Does not change distribution shape (skew unchanged) |
 
 ---
@@ -98,9 +106,9 @@
 
 | Hyperparameter | What It Controls | Impact on Complexity | Overfitting vs Underfitting | Why It Matters for This Dataset |
 |---|---|---|---|---|
-| **max_depth** | Maximum tree depth | Higher → more complex | High depth → overfits; Low depth → underfits | Income data has non-linear patterns; need enough depth to capture them without memorizing noise |
-| **min_samples_split** | Minimum samples to split a node | Lower → more complex | Low value → overfits to small groups; High value → underfits | Many features have discrete/categorical values — prevents splits on tiny subgroups |
-| **min_samples_leaf** | Minimum samples in a leaf node | Lower → more complex | Low value → overfits; High value → underfits | With 45K+ rows, small leaves can memorize individual income patterns |
+| **max_depth** | Maximum tree depth | Higher → more complex | High depth → overfits; Low depth → underfits | 20 categorical/ordinal features — deep trees memorize specific feature combinations |
+| **min_samples_split** | Minimum samples to split a node | Lower → more complex | Low value → overfits to small groups; High value → underfits | Prevents splits on tiny subgroups of income categories |
+| **min_samples_leaf** | Minimum samples in a leaf node | Lower → more complex | Low value → overfits; High value → underfits | With 77K+ rows, small leaves can memorize noise |
 
 **Validation curve insight**:
 - Train R² ≈ 1.0 at high depth / low min_samples → clear overfitting
@@ -128,7 +136,7 @@
 |---|---|---|---|---|
 | **C** | Regularization strength (inverse) | Higher C → less regularization → more complex | High C → overfits (fits every point); Low C → underfits (too smooth) | Income data has outliers — need balanced C to avoid fitting extreme values |
 | **epsilon** | Width of insensitive tube | Smaller → more support vectors → more complex | Small epsilon → overfits; Large epsilon → underfits (ignores too much) | Controls how much prediction error is tolerated before penalizing |
-| **gamma** | RBF kernel width | Higher → tighter kernels → more complex | High gamma → overfits (local patterns only); Low gamma → underfits (too smooth) | With 20 features, gamma controls how many features influence each prediction |
+| **gamma** | RBF kernel width | Higher → tighter kernels → more complex | High gamma → overfits (local patterns only); Low gamma → underfits (too smooth) | With 20 features, gamma controls how many nearby points influence each prediction |
 
 **Validation curve insight**:
 - C: Very high C → train R² high but CV drops → overfitting
